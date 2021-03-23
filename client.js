@@ -190,10 +190,10 @@ void async function () {
   let request = new Request({
     method: 'POST',
     host: '127.0.0.1',
-    port: '8088',
+    port: '8090',
     path: '/',
     headers: {
-      ['X-Foo2']: 'customed'
+      ['X-Foo2']: 'custom'
     },
     body: {
       name: 'anthony'
@@ -203,6 +203,4 @@ void async function () {
   let response = await request.send()
 
   let dom = parser.parseHTML(response.body)
-
-
 }()
