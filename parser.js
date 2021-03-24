@@ -1,11 +1,9 @@
 let currentToken = null
 let currentAttribute = null
+let currentTextNode = null
 
 let stack = [{type: 'document', children: []}]
 function emit(token) {
-  if (token.type === 'text')
-    return
-
   let top = stack[stack.length - 1]
 
   if (token.type === 'startTag') {
@@ -40,8 +38,16 @@ function emit(token) {
       stack.pop()
     }
     currentTextNode = null
+  } else if (token.type === 'text') {
+    if (currentTextNode === null) {
+      currentTextNode = {
+        type: 'text',
+        content: ''
+      }
+      top.children.push(currentTextNode)
+    }
+    currentTextNode.content += token.content
   }
-
 }
 
 const EOF = Symbol('EOF')
@@ -57,7 +63,7 @@ function data(c) {
   } else {
     emit({
       type: 'text',
-      context: c
+      content: c
     })
     return data
   }
@@ -110,9 +116,9 @@ function tagName(c) {
 }
 
 function beforeAttributeName(c) {
-  if (c.match(/^[\t\f\n ]$/)) {
+  if (c.match(/^[\t\n\f ]$/)) {
     return beforeAttributeName
-  } else if (c === '/' || c === '>' || c === EOF) {
+  } else if (c === '/' || c ==='>' || c === EOF) {
     return afterAttributeName(c)
   } else if (c === '=') {
 
@@ -127,12 +133,28 @@ function beforeAttributeName(c) {
 }
 
 function attributeName(c) {
+  if (c.match(/^[\t\f\n ]$/) || c === '/' || c === '>' || c === EOF) {
+    return afterAttributeName
+  } else if (c === '=') {
+    return beforeAttributeValue
+  } else if (c === '\u0000') {
+
+  } else if (c === '\'' || c === '"' || c === '<') {
+
+  } else {
+    currentAttribute.name += c
+
+    return attributeName
+  }
+}
+
+function beforeAttributeValue(c) {
   if (c.match(/^[\t\n\f ]$/) || c === '/' || c === '>' || c === EOF) {
-    return beforeAttributeValue(c)
+    return beforeAttributeValue
   } else if (c === '\"') {
-    return doubleQuotedAttributeValue(c)
+    return doubleQuotedAttributeValue
   } else if (c === '\'') {
-    return singleQuotedAttributeValue(c)
+    return singleQuotedAttributeValue
   } else if (c === '>') {
 
   } else {
@@ -146,6 +168,8 @@ function doubleQuotedAttributeValue(c) {
     return afterQuotedAttributeValue
   } else if (c === '\u0000') {
 
+  } else if ( c === EOF ) {
+
   } else {
     currentAttribute.value += c
     return doubleQuotedAttributeValue
@@ -157,6 +181,8 @@ function singleQuotedAttributeValue(c) {
     currentToken[currentAttribute.name] = currentAttribute.value
     return afterQuotedAttributeValue
   } else if (c === '\u0000') {
+
+  } else if (c === EOF) {
 
   } else {
     currentAttribute.value += c
@@ -204,28 +230,6 @@ function UnquotedAttributeValue(c) {
   }
 }
 
-function UnquotedAttributeValue(c) {
-  if (c.match(/^[\t\n\f ]$/)) {
-    currentToken[currentAttribute.name] = currentAttribute.value
-    return beforeAttributeName
-  } else if (c === '/') {
-    currentToken[currentAttribute.name] = currentAttribute.value
-    return selfClosingStartTag
-  } else if (c === '>') {
-    currentToken[currentAttribute.name] = currentAttribute.value
-    emit(currentToken)
-    return data
-  } else if (c === '\u0000') {
-
-  } else if (c === '\"' || c === "'" || c === '<' || c === '=' || c === '`') {
-
-  } else {
-    currentAttribute.value += c
-    return UnquotedAttributeValue
-  }
-}
-
-
 function selfClosingStartTag(c) {
   if (c === '>') {
     currentToken.isSelfClosing = true
@@ -237,11 +241,35 @@ function selfClosingStartTag(c) {
   }
 }
 
+function afterAttributeName(c) {
+  if (c.match(/^[\t\f\n ]$/)) {
+    return afterAttributeName
+  } else if (c === '/') {
+    return selfClosingStartTag
+  } else if (c === '=') {
+    return beforeAttributeValue
+  } else if (c === '>') {
+    currentToken[currentAttribute.name] = currentAttribute.value
+    emit(currentToken)
+    return data
+  } else if (c === EOF) {
+
+  } else {
+    currentToken[currentAttribute.name] = currentAttribute.value
+    currentAttribute = {
+      name: '',
+      value: ''
+    }
+
+    return attributeName(c)
+  }
+}
+
 module.exports.parseHTML = function parseHTML(html) {
     let state = data
     for (let c of html) {
         state = state(c)
     }
     state = state(EOF)
-    console.log(1, stack[0])
+    console.log(stack[0])
 }
