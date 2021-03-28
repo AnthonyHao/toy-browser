@@ -10,7 +10,7 @@ http.createServer((request, response) => {
     body = (Buffer.concat([Buffer.from(body.toString())])).toString()
     console.log('body', body)
     response.writeHead('200', {'Content-Type': 'text/html'})
-    response.end(`<html><head><title>abcdefg</title></head><body><div /><a></a><div></div></body></html>`)
+    response.end(`<html><head><title>abcdefg</title><style>.red { color: red }</style></head><body><div class='red'></div><a url='www.g.com' /><div></div></body></html>`)
   })
 }).listen(8090)
 
