@@ -7,13 +7,62 @@ let currentTextNode = null
 let stack = [{type: 'document', children: []}]
 let rules = []
 
+function specificity(selector) {
+  var p = [0, 0, 0, 0]
+  var selectorParts = selector.split('')
+
+  for (var part of selectorParts) {
+    if (part.charAt(0) === '#') {
+      p[1] += 1
+    } else if (part.charAt(0) === '.') {
+      p[2] += 1
+    } else {
+      p[3] += 1
+    }
+  }
+
+  return p
+}
+
+function compare(sp1, sp2) {
+  if (sp1[0] - sp2[0])
+    return sp1[0] - sp2[0]
+
+  if (sp1[1] - sp2[1])
+    return sp1[1] - sp2[1]
+
+  if (sp1[2] - sp2[2])
+    return sp1[2] - sp2[2]
+
+  return sp1[3] - sp2[3]
+}
+
 function addCSSRules(text) {
   const ast = css.parse(text)
-  console.log(JSON.stringify(ast, null, '      '))
+  // console.log(JSON.stringify(ast, null, '      '))
   rules.push(...ast.stylesheet.rules)
 }
 
-function match() {}
+function match(element, selector) {
+  if (!selector || !element.attributes)
+    return false
+
+  if (selector.charAt(0) === '#') {
+    var attr = element.attributes.filter(attr => attr.name === 'id')[0]
+
+    if (attr && attr.value === selector.replace('#', ''))
+      return true
+  } else if (selector.charAt(0) === '.') {
+    var attr = element.attributes.filter(attr => attr.name = 'class')[0]
+    if (attr && attr.value === selector.replace('.', ''))
+      return true
+  } else {
+    if (element.tagName === selector)
+      return true
+  }
+
+  return false
+}
 
 function computeCSS(element) {
   const elements = stack.slice().reverse()
@@ -39,7 +88,20 @@ function computeCSS(element) {
       matched = true
 
     if (matched) {
-      console.log(element, rule)
+      var sp = specificity(rule.selectors[0])
+      var computedStyle = element.computedStyle
+      for (var declaration of rule.declarations) {
+        if (!computedStyle[declaration.property])
+          computedStyle[declaration.property] = {}
+
+        if (!computedStyle[declaration.property].specificity) {
+          computedStyle[declaration.property].value = declaration.value
+          computedStyle[declaration.property].specificity = sp
+        } else if (compare(computedStyle[declaration.property].specificity, sp) < 0) {
+          computedStyle[declaration.property].value = declaration.value
+          computedStyle[declaration.property].specificity = sp
+        }
+      }
     }
   }
 }
@@ -318,5 +380,5 @@ module.exports.parseHTML = function parseHTML(html) {
         state = state(c)
     }
     state = state(EOF)
-    console.log(stack[0])
+    // console.log(stack[0])
 }
