@@ -70,7 +70,7 @@ function computeCSS(element) {
     element.computedStyle = {}
 
   for (let rule of rules) {
-    var selectorParts = rule.selectors[0].split('').reverse()
+    var selectorParts = rule.selectors[0].split(' ').reverse()
 
     if (!match(element, selectorParts[0]))
       continue
@@ -381,4 +381,5 @@ module.exports.parseHTML = function parseHTML(html) {
     }
     state = state(EOF)
     // console.log(stack[0])
+    return stack[0]
 }
