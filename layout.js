@@ -7,7 +7,7 @@ function getStyle(element) {
 		element.style[prop] = element.computedStyle[prop].value
 
 		if (element.style[prop].toString().match(/px$/)) {
-			element.style[prop] = element.computedStyle[prop].value
+			element.style[prop] = parseInt(element.style[prop])
 		}
 
 		if (element.style[prop].toString().match(/^[0-9\.]+$/)) {
