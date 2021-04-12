@@ -34,9 +34,9 @@ function layout(element) {
 		return (a.order || 0) - (b.order || 0)
 	})
 
-	var style = elementStyle
+	var style = elementStyle;
 
-	['width', 'height'].array.forEach(size => {
+	['width', 'height'].forEach(size => {
 		if (style[size] === 'auto' || style[size] === '') {
 			style[size] = null
 		}
@@ -191,7 +191,7 @@ function layout(element) {
 			currentMain = itemStyle[mainEnd]
 		}
 	} else {
-		flexLine.forEach(function(items) {
+		flexLines.forEach(function(items) {
 			var mainSpace = items.mainSpace
 			var flexTotal = 0
 			for (var i =0; i < items.length; i++) {
@@ -243,7 +243,7 @@ function layout(element) {
 				for (var i = 0; i < items.length; i++) {
 					var item = items[i]
 					itemStyle[mainStart] = currentMain
-					itemStyle[mainEnd] = itemStyle[mainStart] + mainSign * itemSize[mainSize]
+					itemStyle[mainEnd] = itemStyle[mainStart] + mainSign * itemStyle[mainSize]
 					currentMain = itemStyle[mainEnd] + step
 				}
 			}
