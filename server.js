@@ -15,20 +15,23 @@ http.createServer((request, response) => {
         <head>
           <title>abcdefg</title>
           <style>
-            body div #myid {
-              width: 100px;
-              background-color: #ff5000;
-            }
-            body div img {
-              width: 30px;
-              background-color: #ff1111;
-            }
+           #container {
+             height: 300px;
+             width: 500px;
+             display: flex;
+           }
+           #container #myid{
+             width: 200px;
+           }
+           #container .c1 {
+             flex: 1;
+           }
           </style>
         </head>
         <body>
-            <div>
-              <img id='myid' />
-              <img />
+            <div id='container'>
+              <div id='myid' />
+              <div class='c1' />
             </div>
         </body>`
       )})
